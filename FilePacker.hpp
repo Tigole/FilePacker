@@ -51,7 +51,7 @@ private:
 
     void mt_Pack_List_Files(const std::vector<std::string>& files, std::vector<FileDescription>& file_description);
     uint64_t mt_Pack_Write_Header(std::ofstream& output, const std::vector<FileDescription>& file_description);
-    uint64_t mt_Pack_Write_Files(std::ofstream& output, const std::vector<FileDescription>& file_description);
+    uint64_t mt_Pack_Write_Files(std::ofstream& output, std::vector<FileDescription>& file_description);
 
 
 };
