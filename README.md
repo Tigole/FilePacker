@@ -1,7 +1,7 @@
 # FilePacker
 Library to pack several files into only one and retrieve one file among several.
 
-File created starts has the header "JaJa" then the following architecture:
+File created starts has the header "JaJaX" (X is the revision of the algorithm from 0 to 9) then the following architecture:
 1. 16 bits for file count
 2. For each file
     2.1. 16 bits for file name
