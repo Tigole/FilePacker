@@ -58,42 +58,45 @@ bool FilePacker::mt_Parse(const std::string& file)
 
     if (l_Input.is_open())
     {
-        char l_Header[4];
+        char l_Header[5];
 
         m_Parsed_File = file;
 
-        l_Input.read(l_Header, 4);
+        l_Input.read(l_Header, 5);
 
         if ((l_Header[0] == 'J') && (l_Header[1] == 'a') && (l_Header[2] == 'J') && (l_Header[3] == 'a'))
         {
-            uint16_t l_File_Count;
-
-            l_Input.read((char*)&l_File_Count, sizeof(l_File_Count));
-            std::cerr << "File count: " << l_File_Count << '\n';
-
-            m_File_Description.resize(l_File_Count);
-
-            for (uint16_t ii = 0; ii < l_File_Count; ii++)
+            if (l_Header[4] == '0')
             {
-                uint16_t l_File_Name_Size;
+                uint16_t l_File_Count;
 
-                l_Input.read((char*)&l_File_Name_Size, sizeof(l_File_Name_Size));
+                l_Input.read((char*)&l_File_Count, sizeof(l_File_Count));
+                std::cerr << "File count: " << l_File_Count << '\n';
 
-                m_File_Description[ii].m_Full_Path.resize(l_File_Name_Size);
-                l_Input.read(&m_File_Description[ii].m_Full_Path[0], l_File_Name_Size);
+                m_File_Description.resize(l_File_Count);
 
-                l_Input.read((char*)&m_File_Description[ii].m_Size, sizeof(m_File_Description[ii].m_Size));
+                for (uint16_t ii = 0; ii < l_File_Count; ii++)
+                {
+                    uint16_t l_File_Name_Size;
 
-                l_File_Name_Size = m_File_Description[ii].m_Size;
-                l_File_Name_Size = l_Input.tellg();
+                    l_Input.read((char*)&l_File_Name_Size, sizeof(l_File_Name_Size));
+
+                    m_File_Description[ii].m_Full_Path.resize(l_File_Name_Size);
+                    l_Input.read(&m_File_Description[ii].m_Full_Path[0], l_File_Name_Size);
+
+                    l_Input.read((char*)&m_File_Description[ii].m_Size, sizeof(m_File_Description[ii].m_Size));
+
+                    l_File_Name_Size = m_File_Description[ii].m_Size;
+                    l_File_Name_Size = l_Input.tellg();
+                }
+
+                for (std::size_t ii = 0; ii < m_File_Description.size(); ii++)
+                {
+                    m_File_Description[ii].m_Start_Pos = l_Input.tellg();
+                    l_Input.seekg(m_File_Description[ii].m_Size, std::ios::cur);
+                }
+                std::cerr << "Parsed File: \"" << m_Parsed_File << "\"\n";
             }
-
-            for (std::size_t ii = 0; ii < m_File_Description.size(); ii++)
-            {
-                m_File_Description[ii].m_Start_Pos = l_Input.tellg();
-                l_Input.seekg(m_File_Description[ii].m_Size, std::ios::cur);
-            }
-            std::cerr << "Parsed File: \"" << m_Parsed_File << "\"\n";
         }
 
         l_Input.close();
@@ -169,9 +172,9 @@ uint64_t FilePacker::mt_Pack_Write_Header(std::ofstream& output, const std::vect
     uint16_t l_File_Count = file_description.size();
     uint64_t l_Current_Pos = 0;
 
-    output.write("JaJa", 4);
+    output.write("JaJa0", 5);
     output.write((char*)&l_File_Count, sizeof(l_File_Count));
-    l_Current_Pos = 4 + l_File_Count;
+    l_Current_Pos = 5 + l_File_Count;
 
     for (std::size_t ii = 0; ii < file_description.size(); ii++)
     {
